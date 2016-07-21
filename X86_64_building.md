@@ -1,4 +1,4 @@
-X86_64_building.txt
+X86_64_building.md
 
 Guile 1.8.8 builds fine for X86_64 on any linux distribution provided warnings are not considered as errors.
 
