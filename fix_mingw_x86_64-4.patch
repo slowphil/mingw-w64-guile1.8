@@ -1,0 +1,332 @@
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/debug.c src/guile-1.8.8.mod/libguile/debug.c
+--- src/guile-1.8.8/libguile/debug.c	2010-12-13 18:24:39.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/debug.c	2016-07-17 09:17:40.165195000 +0200
+@@ -482,11 +483,13 @@
+ 
+ scm_t_bits scm_tc16_debugobj;
+ 
++
++
+ static int
+ debugobj_print (SCM obj, SCM port, scm_print_state *pstate SCM_UNUSED)
+ {
+   scm_puts ("#<debug-object ", port);
+-  scm_intprint ((long) SCM_DEBUGOBJ_FRAME (obj), 16, port);
++  scm_intprint ((long long) SCM_DEBUGOBJ_FRAME (obj), 16, port);
+   scm_putc ('>', port);
+   return 1;
+ }
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/deprecated.c src/guile-1.8.8.mod/libguile/deprecated.c
+--- src/guile-1.8.8/libguile/deprecated.c	2010-12-13 18:24:39.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/deprecated.c	2016-07-17 09:16:59.619140800 +0200
+@@ -83,7 +84,7 @@
+ {
+   if (!s_subr || !*s_subr)
+     s_subr = NULL;
+-  if ((~0x1fL) & (long) pos)
++  if ((~0x1fL) & (long long) pos)
+     {
+       /* error string supplied.  */
+       scm_misc_error (s_subr, pos, scm_list_1 (arg));
+@@ -188,7 +189,7 @@
+   res = SCM_EOL;
+   for (md = registered_mods; md; md = md->link)
+     res = scm_cons (scm_cons (scm_from_locale_string (md->module_name),
+-			      scm_from_ulong ((unsigned long) md->init_func)),
++			      scm_from_ulong_long ((unsigned long long) md->init_func)),
+ 		    res);
+   return res;
+ }
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/dynl.c src/guile-1.8.8.mod/libguile/dynl.c
+--- src/guile-1.8.8/libguile/dynl.c	2010-12-13 18:24:39.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/dynl.c	2016-07-17 11:20:12.132550300 +0200
+@@ -232,7 +232,7 @@
+     func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), 
+ 					   FUNC_NAME);
+     scm_dynwind_end ();
+-    return scm_from_ulong ((unsigned long) func);
++    return scm_from_ulong_long ((unsigned long long) func);
+   }
+ }
+ #undef FUNC_NAME
+@@ -262,7 +262,7 @@
+   
+   if (scm_is_string (func))
+     func = scm_dynamic_func (func, dobj);
+-  fptr = (void (*) ()) scm_to_ulong (func);
++  fptr = (void (*) ()) scm_to_ulong_long (func);
+   fptr ();
+   return SCM_UNSPECIFIED;
+ }
+@@ -299,7 +299,7 @@
+   if (scm_is_string (func))
+     func = scm_dynamic_func (func, dobj);
+ 
+-  fptr = (int (*) (int, char **)) scm_to_ulong (func);
++  fptr = (int (*) (int, char **)) scm_to_ulong_long (func);
+ 
+   argv = scm_i_allocate_string_pointers (args);
+   scm_dynwind_unwind_handler (free_string_pointers, argv,
+--- src/guile-1.8.8/libguile/environments.c     2010-12-13 18:24:39.000000000 +0100
++++ src/guile-1.8.8/libguile/environments.c.mod 2016-07-20 19:43:15.914074000 +0200
+@@ -1227,8 +1227,7 @@
+   if (!SCM_ENVIRONMENT_BOUND_P (local, symbol))
+     {
+       SCM proc_as_nr = SCM_CADR (extended_data);
+-      unsigned long int proc_as_ul = scm_to_ulong (proc_as_nr);
+-      scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
++      scm_environment_folder proc = (scm_environment_folder) scm_to_ulong_long (proc_as_nr);
+       SCM data = SCM_CDDR (extended_data);
+
+       return (*proc) (data, symbol, value, tail);
+@@ -1245,7 +1244,7 @@
+ {
+   SCM local = EVAL_ENVIRONMENT (env)->local;
+   SCM imported = EVAL_ENVIRONMENT (env)->imported;
+-  SCM proc_as_nr = scm_from_ulong ((unsigned long) proc);
++  SCM proc_as_nr = scm_from_ulong_long ((unsigned long long) proc);
+   SCM extended_data = scm_cons2 (local, proc_as_nr, data);
+   SCM tmp_result = scm_c_environment_fold (imported, eval_environment_folder, extended_data, init);
+
+@@ -1632,8 +1631,7 @@
+   SCM imported_env = SCM_CADR (extended_data);
+   SCM owner = import_environment_lookup (import_env, symbol);
+   SCM proc_as_nr = SCM_CADDR (extended_data);
+-  unsigned long int proc_as_ul = scm_to_ulong (proc_as_nr);
+-  scm_environment_folder proc = (scm_environment_folder) proc_as_ul;
++  scm_environment_folder proc = (scm_environment_folder) scm_to_ulong_long (proc_as_nr);
+   SCM data = SCM_CDDDR (extended_data);
+
+   if (scm_is_pair (owner) && scm_is_eq (SCM_CAR (owner), imported_env))
+@@ -1650,7 +1648,7 @@
+ static SCM
+ import_environment_fold (SCM env, scm_environment_folder proc, SCM data, SCM init)
+ {
+-  SCM proc_as_nr = scm_from_ulong ((unsigned long) proc);
++  SCM proc_as_nr = scm_from_ulong_long ((unsigned long long) proc);
+   SCM result = init;
+   SCM l;
+
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/eval.c src/guile-1.8.8.mod/libguile/eval.c
+--- src/guile-1.8.8/libguile/eval.c	2010-12-13 18:24:39.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/eval.c	2016-07-17 10:09:43.426105900 +0200
+@@ -357,6 +358,7 @@
+     + ((binding_nr) << 20) \
+     + ((last_p) ? SCM_ICDR : 0) \
+     + scm_tc8_iloc )
++// #   define SCM_PACK(x) ((SCM) (x))
+ 
+ void
+ scm_i_print_iloc (SCM iloc, SCM port)
+@@ -489,11 +491,31 @@
+ 	    {
+ 	      if (scm_is_eq (SCM_CAR (symbol_idx), symbol))
+ 		/* found the symbol, therefore return the iloc */
+-		return SCM_MAKE_ILOC (frame_nr, symbol_nr, 0);
++		// return SCM_MAKE_ILOC (frame_nr, symbol_nr, 0);
++				return 	(SCM)(long long)(((frame_nr) << 8) \
++				+ ((symbol_nr) << 20) \
++				+ ((0) ? SCM_ICDR : 0) \
++				+ scm_tc8_iloc );
++
+ 	    }
+ 	  if (scm_is_eq (symbol_idx, symbol))
+ 	    /* found the symbol as the last element of the current frame */
+-	    return SCM_MAKE_ILOC (frame_nr, symbol_nr, 1);
++	    //return (uintptr_t) SCM_MAKE_ILOC (frame_nr, symbol_nr, 1);
++		return 		(SCM)(long long)(((frame_nr) << 8) \
++				+ ((symbol_nr) << 20) \
++				+ ((1) ? SCM_ICDR : 0) \
++				+ scm_tc8_iloc );
++
++		/*
++		#define SCM_MAKE_ILOC(frame_nr, binding_nr, last_p) \
++			SCM_PACK ( \
++				((frame_nr) << 8) \
++				+ ((binding_nr) << 20) \
++				+ ((last_p) ? SCM_ICDR : 0) \
++				+ scm_tc8_iloc )
++		#   define SCM_PACK(x) ((SCM) (x))
++		*/
++
+ 	}
+       else
+ 	{
+@@ -3100,7 +3122,7 @@
+   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
+   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
+   { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (measured in words; 0 = no check)." },
+-  { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T, "Show file names and line numbers in backtraces when not `#f'.  A value of `base' displays only base names, while `#t' displays full names."},
++  { SCM_OPTION_SCM, "show-file-name", (unsigned long long) SCM_BOOL_T, "Show file names and line numbers in backtraces when not `#f'.  A value of `base' displays only base names, while `#t' displays full names."},
+   { SCM_OPTION_BOOLEAN, "warn-deprecated", 0, "Warn when deprecated features are used." }
+ };
+ 
+@@ -3109,9 +3131,9 @@
+   { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
+   { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
+   { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." },
+-  { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for enter-frame traps." },
+-  { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for apply-frame traps." },
+-  { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for exit-frame traps." }
++  { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long long) SCM_BOOL_F, "Handler for enter-frame traps." },
++  { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long long) SCM_BOOL_F, "Handler for apply-frame traps." },
++  { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long long) SCM_BOOL_F, "Handler for exit-frame traps." }
+ };
+ 
+ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/gc.c src/guile-1.8.8.mod/libguile/gc.c
+--- src/guile-1.8.8/libguile/gc.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/gc.c	2016-07-17 10:19:33.287086100 +0200
+@@ -326,8 +335,8 @@
+     abort();
+   for (i = table_size; i--; )
+     {
+-      bounds[2*i] = (unsigned long)scm_i_heap_segment_table[i]->bounds[0];
+-      bounds[2*i+1] = (unsigned long)scm_i_heap_segment_table[i]->bounds[1];
++      bounds[2*i] = (unsigned long long) scm_i_heap_segment_table[i]->bounds[0];
++      bounds[2*i+1] = (unsigned long long) scm_i_heap_segment_table[i]->bounds[1];
+     }
+ 
+ 
+@@ -806,7 +815,7 @@
+ scm_gc_register_root (SCM *p)
+ {
+   SCM handle;
+-  SCM key = scm_from_ulong ((unsigned long) p);
++  SCM key = scm_from_ulong_long ((unsigned long long) p);
+ 
+   /* This critical section barrier will be replaced by a mutex. */
+   /* njrev: and again. */
+@@ -824,7 +833,7 @@
+ scm_gc_unregister_root (SCM *p)
+ {
+   SCM handle;
+-  SCM key = scm_from_ulong ((unsigned long) p);
++  SCM key = scm_from_ulong_long ((unsigned long long) p);
+ 
+   /* This critical section barrier will be replaced by a mutex. */
+   /* njrev: and again. */
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/gc_os_dep.c src/guile-1.8.8.mod/libguile/gc_os_dep.c
+--- src/guile-1.8.8/libguile/gc_os_dep.c	2010-12-13 18:25:01.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/gc_os_dep.c	2016-07-17 10:25:19.171182600 +0200
+@@ -1651,7 +1651,7 @@
+         GetSystemInfo(&sysinfo);
+         GC_page_size = sysinfo.dwPageSize;
+     }
+-    trunc_sp = (ptr_t)((word)sp & ~(GC_page_size - 1));
++    trunc_sp = (ptr_t)((long long)sp & ~(GC_page_size - 1));
+     size = GC_get_writable_length(trunc_sp, 0);
+     return(trunc_sp + size);
+ }
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/gc-mark.c src/guile-1.8.8.mod/libguile/gc-mark.c
+--- src/guile-1.8.8/libguile/gc-mark.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/gc-mark.c	2016-07-17 10:21:22.324182600 +0200
+@@ -93,7 +93,7 @@
+ 	SCM l = SCM_HASHTABLE_BUCKET (scm_gc_registered_roots, i);
+ 	for (; !scm_is_null (l); l = SCM_CDR (l))
+ 	  {
+-	    SCM *p = (SCM *) (scm_to_ulong (SCM_CAAR (l)));
++	    SCM *p = (SCM *) (scm_to_ulong_long (SCM_CAAR (l)));
+ 	    scm_gc_mark (*p);
+ 	  }
+       }
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/numbers.h src/guile-1.8.8.mod/libguile/numbers.h
+--- src/guile-1.8.8/libguile/numbers.h	2010-12-13 18:25:01.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/numbers.h	2016-07-17 10:55:37.247076500 +0200
+@@ -57,8 +57,8 @@
+  */
+ 
+ #define SCM_I_FIXNUM_BIT         (SCM_LONG_BIT - 2)
+-#define SCM_MOST_POSITIVE_FIXNUM ((SCM_T_SIGNED_BITS_MAX-3)/4)
+-#define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM-1)
++#define SCM_MOST_POSITIVE_FIXNUM (signed long)((SCM_T_SIGNED_BITS_MAX-3)/4)
++#define SCM_MOST_NEGATIVE_FIXNUM (signed long)(-SCM_MOST_POSITIVE_FIXNUM-1)
+ 
+ /* SCM_SRS is signed right shift */
+ #if (-1 == (((-1) << 2) + 2) >> 2)
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/print.c src/guile-1.8.8.mod/libguile/print.c
+--- src/guile-1.8.8/libguile/print.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/print.c	2016-07-17 10:58:28.789229000 +0200
+@@ -78,11 +78,11 @@
+     "Hook for printing closures (should handle macros as well)." },
+   { SCM_OPTION_BOOLEAN, "source", 0,
+     "Print closures with source." },
+-  { SCM_OPTION_SCM, "highlight-prefix", (unsigned long)SCM_BOOL_F,
++  { SCM_OPTION_SCM, "highlight-prefix", (unsigned long long) SCM_BOOL_F,
+     "The string to print before highlighted values." },
+-  { SCM_OPTION_SCM, "highlight-suffix", (unsigned long)SCM_BOOL_F,
++  { SCM_OPTION_SCM, "highlight-suffix", (unsigned long long) SCM_BOOL_F,
+     "The string to print after highlighted values." },
+-  { SCM_OPTION_SCM, "quote-keywordish-symbols", (unsigned long)SCM_BOOL_F,
++  { SCM_OPTION_SCM, "quote-keywordish-symbols", (unsigned long long) SCM_BOOL_F,
+     "How to print symbols that have a colon as their first or last character. "
+     "The value '#f' does not quote the colons; '#t' quotes them; "
+     "'reader' quotes them when the reader option 'keywords' is not '#f'." 
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/scmsigs.c src/guile-1.8.8.mod/libguile/scmsigs.c
+--- src/guile-1.8.8/libguile/scmsigs.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/scmsigs.c	2016-07-17 11:09:52.311574400 +0200
+@@ -337,12 +337,12 @@
+     {
+       long handler_int = scm_to_long (handler);
+ 
+-      if (handler_int == (long) SIG_DFL || handler_int == (long) SIG_IGN)
++      if (handler_int == (long long) SIG_DFL || handler_int == (long long) SIG_IGN)
+ 	{
+ #ifdef HAVE_SIGACTION
+ 	  action.sa_handler = (SIGRETTYPE (*) (int)) handler_int;
+ #else
+-	  chandler = (SIGRETTYPE (*) (int)) handler_int;
++	  chandler = (SIGRETTYPE (*) (int)) (long long) handler_int;
+ #endif
+ 	  install_handler (csig, SCM_BOOL_F, SCM_BOOL_F, async);
+ 	}
+@@ -453,7 +453,7 @@
+ 	orig_handlers[csig] = old_chandler;
+     }
+   if (old_chandler == SIG_DFL || old_chandler == SIG_IGN)
+-    old_handler = scm_from_long ((long) old_chandler);
++    old_handler = scm_from_long_long ((long long) old_chandler);
+   SCM_CRITICAL_SECTION_END;
+   return scm_cons (old_handler, scm_from_int (0));
+ #endif
+@@ -674,8 +674,8 @@
+     }
+ 
+   scm_c_define ("NSIG", scm_from_long (NSIG));
+-  scm_c_define ("SIG_IGN", scm_from_long ((long) SIG_IGN));
+-  scm_c_define ("SIG_DFL", scm_from_long ((long) SIG_DFL));
++  scm_c_define ("SIG_IGN", scm_from_long_long ((long long) SIG_IGN));
++  scm_c_define ("SIG_DFL", scm_from_long_long ((long long) SIG_DFL));
+ #ifdef SA_NOCLDSTOP
+   scm_c_define ("SA_NOCLDSTOP", scm_from_long (SA_NOCLDSTOP));
+ #endif
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/struct.c src/guile-1.8.8.mod/libguile/struct.c
+--- src/guile-1.8.8/libguile/struct.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8.mod/libguile/struct.c	2016-07-17 11:11:15.665909000 +0200
+@@ -809,7 +809,7 @@
+ #define FUNC_NAME s_scm_struct_vtable_tag
+ {
+   SCM_VALIDATE_VTABLE (1, handle);
+-  return scm_from_ulong (((unsigned long)SCM_STRUCT_DATA (handle)) >> 3);
++  return scm_from_ulong_long (((unsigned long long) SCM_STRUCT_DATA (handle)) >> 3);
+ }
+ #undef FUNC_NAME
+ 
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h src/guile-1.8.8/libguile/throw.c src/guile-1.8.8.mod/libguile/throw.c
+--- src/guile-1.8.8/libguile/throw.c	2016-07-17 11:31:38.144766400 +0200
++++ src/guile-1.8.8.mod/libguile/throw.c	2016-07-17 11:16:59.532292200 +0200
+@@ -232,11 +232,11 @@
+ static int
+ pre_unwind_data_print (SCM closure, SCM port, scm_print_state *pstate SCM_UNUSED)
+ {
+-  struct pre_unwind_data *c = (struct pre_unwind_data *) SCM_CELL_WORD_1 (closure);
++  //struct pre_unwind_data *c = (struct pre_unwind_data *) SCM_CELL_WORD_1 (closure);
+   char buf[200];
+ 
+-  sprintf (buf, "#<pre-unwind-data 0x%lx 0x%lx>",
+-	   (long) c->handler, (long) c->handler_data);
++  //sprintf (buf, "#<pre-unwind-data 0x%lx 0x%lx>",
++//	   (long) c->handler, (long) c->handler_data);
+   scm_puts (buf, port);
+ 
+   return 1;

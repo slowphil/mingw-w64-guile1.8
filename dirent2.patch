@@ -1,0 +1,249 @@
+--- guile1.8.8.orig/configure.in	2010-12-13 18:24:39.000000000 +0100
++++ guile1.8.8.orig/configure.in.mod	2016-07-21 01:00:03.439910767 +0200
+@@ -713,7 +713,7 @@
+       [Define if you have the <winsock2.h> header file.])])
+     AC_CHECK_LIB(ws2_32, main)
+     AC_LIBOBJ([win32-uname])
+-    AC_LIBOBJ([win32-dirent])
++#    AC_LIBOBJ([win32-dirent])
+     if test "$enable_networking" = yes ; then
+       AC_LIBOBJ([win32-socket])
+     fi
+--- guile1.8.8.orig/libguile/Makefile.am	2010-12-13 18:24:39.000000000 +0100
++++ guile-release_1-8-8/libguile/Makefile.am	2016-07-20 19:08:47.727401939 +0200
+@@ -160,7 +160,7 @@
+     dynl.c regex-posix.c			\
+     filesys.c posix.c net_db.c socket.c		\
+     debug-malloc.c mkstemp.c	\
+-    win32-uname.c win32-dirent.c win32-socket.c
++    win32-uname.c win32-socket.c
+ 
+ ## delete guile-snarf.awk from the installation bindir, in case it's
+ ## lingering there due to an earlier guile version not having been
+@@ -176,7 +176,7 @@
+                  conv-integer.i.c conv-uinteger.i.c		\
+                  srfi-4.i.c					\
+                  quicksort.i.c                                  \
+-                 win32-uname.h win32-dirent.h win32-socket.h	\
++                 win32-uname.h win32-socket.h	\
+ 	         private-gc.h
+ 
+ libguile_la_DEPENDENCIES = @LIBLOBJS@
+diff -ur guile1.8.8.orig/libguile/filesys.c guile-release_1-8-8/libguile/filesys.c
+--- guile1.8.8.orig/libguile/filesys.c	2010-12-13 20:23:43.000000000 +0100
++++ guile-release_1-8-8/libguile/filesys.c	2016-07-20 16:56:59.012783517 +0200
+@@ -114,11 +114,7 @@
+ #endif
+ 
+ 
+-#if defined (__MINGW32__) || defined (_MSC_VER) || defined (__BORLANDC__)
+-# include "win32-dirent.h"
+-# define NAMLEN(dirent) strlen((dirent)->d_name)
+-/* The following bits are per AC_HEADER_DIRENT doco in the autoconf manual */
+-#elif HAVE_DIRENT_H
++#if HAVE_DIRENT_H
+ # include <dirent.h>
+ # define NAMLEN(dirent) strlen((dirent)->d_name)
+ #else
+--- guile1.8.8.orig/libguile/win32-dirent.h	2010-12-13 20:23:43.000000000 +0100
++++ /dev/null	2016-07-19 09:34:13.073762308 +0200
+@@ -1,64 +0,0 @@
+-/* classes: h_files */
+-
+-#ifndef SCM_WIN32_DIRENT_H
+-#define SCM_WIN32_DIRENT_H
+-
+-/* Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+- *
+- * This library is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU Lesser General Public
+- * License as published by the Free Software Foundation; either
+- * version 2.1 of the License, or (at your option) any later version.
+- *
+- * This library is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * Lesser General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public
+- * License along with this library; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+- */
+-
+-/* Directory stream type.
+-   The miscellaneous Unix `readdir' implementations read directory data
+-   into a buffer and return `struct dirent *' pointers into it.  */
+-
+-#include <sys/types.h>
+-
+-struct dirstream
+-{
+-  int fd;		/* File descriptor.  */
+-  char *data;		/* Directory block.  */
+-  size_t allocation;	/* Space allocated for the block.  */
+-  size_t size;		/* Total valid data in the block.  */
+-  size_t offset;	/* Current offset into the block.  */
+-  off_t filepos;	/* Position of next entry to read.  */
+-  char *mask;           /* Initial file mask. */
+-};
+-
+-struct dirent
+-{
+-  long d_ino;
+-  off_t d_off;
+-  unsigned short int d_reclen;
+-  unsigned char d_type;
+-  char d_name[256];
+-};
+-
+-#define d_fileno d_ino /* Backwards compatibility. */
+-
+-/* This is the data type of directory stream objects.
+-   The actual structure is opaque to users.  */
+-
+-typedef struct dirstream DIR;
+-
+-DIR * opendir (const char * name);
+-struct dirent * readdir (DIR * dir);
+-int closedir (DIR * dir);
+-void rewinddir (DIR * dir);
+-void seekdir (DIR * dir, off_t offset);
+-off_t telldir (DIR * dir);
+-int dirfd (DIR * dir);
+-
+-#endif /* SCM_WIN32_DIRENT_H */
+--- guile1.8.8.orig/libguile/win32-dirent.c	2010-12-13 20:23:43.000000000 +0100
++++ /dev/null	2016-07-19 09:34:13.073762308 +0200
+@@ -1,132 +0,0 @@
+-/* Copyright (C) 2001, 2006, 2008 Free Software Foundation, Inc.
+- * 
+- * This library is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU Lesser General Public
+- * License as published by the Free Software Foundation; either
+- * version 2.1 of the License, or (at your option) any later version.
+- *
+- * This library is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * Lesser General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public
+- * License along with this library; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+- */
+-
+-#ifdef HAVE_CONFIG_H
+-# include <config.h>
+-#endif
+-
+-#include "libguile/__scm.h"
+-
+-#include <windows.h>
+-#include <stdio.h>
+-#include <string.h>
+-
+-#include "win32-dirent.h"
+-
+-DIR *
+-opendir (const char * name)
+-{
+-  DIR *dir;
+-  HANDLE hnd;
+-  char *file;
+-  WIN32_FIND_DATA find;
+-
+-  if (!name || !*name) 
+-    return NULL;
+-  file = malloc (strlen (name) + 3);
+-  strcpy (file, name);
+-  if (file[strlen (name) - 1] != '/' && file[strlen (name) - 1] != '\\')
+-    strcat (file, "/*");
+-  else
+-    strcat (file, "*");
+-  
+-  if ((hnd = FindFirstFile (file, &find)) == INVALID_HANDLE_VALUE)
+-    {
+-      free (file);
+-      return NULL;
+-    }
+-
+-  dir = malloc (sizeof (DIR));
+-  dir->mask = file;
+-  dir->fd = (int) hnd;
+-  dir->data = malloc (sizeof (WIN32_FIND_DATA));
+-  dir->allocation = sizeof (WIN32_FIND_DATA);
+-  dir->size = dir->allocation;
+-  dir->filepos = 0;
+-  memcpy (dir->data, &find, sizeof (WIN32_FIND_DATA));
+-  return dir;
+-}
+-
+-struct dirent *
+-readdir (DIR * dir)
+-{
+-  static struct dirent entry;
+-  WIN32_FIND_DATA *find;
+-
+-  entry.d_ino = 0;
+-  entry.d_type = 0;
+-  find = (WIN32_FIND_DATA *) dir->data;
+-
+-  if (dir->filepos)
+-    {
+-      if (!FindNextFile ((HANDLE) dir->fd, find))
+-	return NULL;
+-    }
+-
+-  entry.d_off = dir->filepos;
+-  strncpy (entry.d_name, find->cFileName, sizeof (entry.d_name));
+-  entry.d_reclen = strlen (find->cFileName);
+-  dir->filepos++;
+-  return &entry;
+-}
+-
+-int 
+-closedir (DIR * dir)
+-{
+-  HANDLE hnd = (HANDLE) dir->fd;
+-  free (dir->data);
+-  free (dir->mask);
+-  free (dir);
+-  return FindClose (hnd) ? 0 : -1;
+-}
+-
+-void 
+-rewinddir (DIR * dir)
+-{
+-  HANDLE hnd = (HANDLE) dir->fd;
+-  WIN32_FIND_DATA *find = (WIN32_FIND_DATA *) dir->data;
+-
+-  FindClose (hnd);
+-  hnd = FindFirstFile (dir->mask, find);
+-  dir->fd = (int) hnd;
+-  dir->filepos = 0;
+-}
+-
+-void 
+-seekdir (DIR * dir, off_t offset)
+-{
+-  off_t n;
+-
+-  rewinddir (dir);
+-  for (n = 0; n < offset; n++)
+-    {
+-      if (FindNextFile ((HANDLE) dir->fd, (WIN32_FIND_DATA *) dir->data))
+-	dir->filepos++;
+-    }
+-}
+-
+-off_t 
+-telldir (DIR * dir)
+-{
+-  return dir->filepos;
+-}
+-
+-int 
+-dirfd (DIR * dir)
+-{
+-  return dir->fd;
+-}

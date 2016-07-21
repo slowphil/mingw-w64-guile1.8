@@ -1,0 +1,437 @@
+--- src/guile-1.8.8/libguile/scmsigs.c	2016-07-20 20:58:58.837339700 +0200
++++ src/guile-1.8.8/libguile/scmsigs.c.mod	2016-07-20 21:03:12.730726500 +0200
+@@ -137,10 +137,10 @@
+ static SIGRETTYPE
+ take_signal (int signum)
+ {
+-  size_t count;
++  //size_t count;
+   char sigbyte = signum;
+ 
+-  count = write (signal_pipe[1], &sigbyte, 1);
++  /*count =*/ write (signal_pipe[1], &sigbyte, 1);
+ 
+ #ifndef HAVE_SIGACTION
+   signal (signum, take_signal);
+--- src/guile-1.8.8/libguile/gc.h       2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/gc.h.mod   2016-07-20 20:31:46.246096900 +0200
+@@ -121,8 +121,8 @@
+ #define SCM_GC_CARD_SIZE_MASK  (SCM_GC_SIZEOF_CARD-1)
+ #define SCM_GC_CARD_ADDR_MASK  (~SCM_GC_CARD_SIZE_MASK)
+
+-#define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
+-#define SCM_GC_CELL_OFFSET(x)  (((long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
++#define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long long) (x) & SCM_GC_CARD_ADDR_MASK))
++#define SCM_GC_CELL_OFFSET(x)  (((long long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
+ #define SCM_GC_CELL_BVEC(x)    SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (x))
+ #define SCM_GC_SET_CELL_BVEC(x, bvec)    SCM_GC_SET_CARD_BVEC (SCM_GC_CELL_CARD (x), bvec)
+ #define SCM_GC_CELL_GET_BIT(x) SCM_C_BVEC_GET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/async.c src/guile-1.8.8/libguile/async.c
+--- src/guile-1.8.8.orig/libguile/async.c	2010-12-13 18:24:39.000000000 +0100
++++ src/guile-1.8.8/libguile/async.c	2016-07-10 11:13:05.840964200 +0200
+@@ -240,7 +240,7 @@
+ 
+   if (sleep_fd >= 0)
+     {
+-      size_t count;
++      //size_t count;
+       char dummy = 0;
+ 
+       /* Likewise, T might already been done with sleeping here, but
+@@ -248,7 +248,8 @@
+ 	 not yet have started sleeping, but this is no problem either
+ 	 since the data written to a pipe will not be lost, unlike a
+ 	 condition variable signal.  */
+-      count = write (sleep_fd, &dummy, 1);
++      //count = write (sleep_fd, &dummy, 1);
++      write (sleep_fd, &dummy, 1);
+     }
+ 
+   /* This is needed to protect sleep_mutex.
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/filesys.c src/guile-1.8.8/libguile/filesys.c
+--- src/guile-1.8.8.orig/libguile/filesys.c	2010-12-13 18:25:01.000000000 +0100
++++ src/guile-1.8.8/libguile/filesys.c	2016-07-10 11:39:26.049667000 +0200
+@@ -300,17 +300,18 @@
+ #define FUNC_NAME s_scm_chmod
+ {
+   int rv;
+-  int fdes;
++  //int fdes;
+ 
+   object = SCM_COERCE_OUTPORT (object);
+ 
+   if (scm_is_integer (object) || SCM_OPFPORTP (object))
+     {
+-      if (scm_is_integer (object))
++    /*  if (scm_is_integer (object))
+ 	fdes = scm_to_int (object);
+       else
+ 	fdes = SCM_FPORT_FDES (object);
+-      SCM_SYSCALL (rv = fchmod (fdes, scm_to_int (mode)));
++    SCM_SYSCALL (rv = fchmod (fdes, scm_to_int (mode)));*/
++	rv = -1;
+     }
+   else
+     {
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/fports.c src/guile-1.8.8/libguile/fports.c
+--- src/guile-1.8.8.orig/libguile/fports.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/fports.c	2016-07-10 11:13:05.872164800 +0200
+@@ -828,11 +828,11 @@
+ 	    {
+ 	      const char *msg = "Error: could not flush file-descriptor ";
+ 	      char buf[11];
+-	      size_t written;
++	      //size_t written;
+ 
+-	      written = write (2, msg, strlen (msg));
++	      /*written =*/ write (2, msg, strlen (msg));
+ 	      sprintf (buf, "%d\n", fp->fdes);
+-	      written = write (2, buf, strlen (buf));
++	      /*written =*/ write (2, buf, strlen (buf));
+ 
+ 	      count = remaining;
+ 	    }
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/gc-segment.c src/guile-1.8.8/libguile/gc-segment.c
+--- src/guile-1.8.8.orig/libguile/gc-segment.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/gc-segment.c	2016-07-10 11:13:05.872164800 +0200
+@@ -89,7 +89,7 @@
+   size_t mem_needed = (1+card_count) * SCM_GC_SIZEOF_CARD
+     + SCM_GC_CARD_BVEC_SIZE_IN_LONGS * card_count * SCM_SIZEOF_LONG
+     ;
+-  scm_t_c_bvec_long * bvec_ptr = 0;
++  //scm_t_c_bvec_long * bvec_ptr = 0;
+   scm_t_cell *  memory = 0;
+
+   /*
+@@ -107,7 +107,7 @@
+ 
+   segment->freelist->heap_size += scm_i_segment_cell_count (segment);
+   
+-  bvec_ptr = (scm_t_c_bvec_long*) segment->bounds[1];
++  //bvec_ptr = (scm_t_c_bvec_long*) segment->bounds[1];
+ 
+   /*
+     Don't init the mem or the bitvector. This is handled by lazy
+@@ -414,7 +414,7 @@
+     return -1;
+ 
+   
+-    {
++  {
+       scm_t_cell *  ptr = SCM2PTR (obj);
+       unsigned long int i = 0;
+       unsigned long int j = scm_i_heap_segment_table_size - 1;
+@@ -466,7 +466,7 @@
+ 	  else
+ 	    return i;
+ 	}
+-    }
++  }
+ }
+ 
+ 
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/posix.c src/guile-1.8.8/libguile/posix.c
+--- src/guile-1.8.8.orig/libguile/posix.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/posix.c	2016-07-10 11:51:03.249477100 +0200
+@@ -968,10 +968,10 @@
+ 			    SCM_F_WIND_EXPLICITLY);
+ 
+   execv (exec_file,
+-#ifdef __MINGW32__
++//#ifdef __MINGW32__
+          /* extra "const" in mingw formals, provokes warning from gcc */
+-         (const char * const *)
+-#endif
++//         (const char * const *)
++//#endif
+          exec_argv);
+   SCM_SYSERROR;
+ 
+@@ -1004,10 +1004,10 @@
+ 			    SCM_F_WIND_EXPLICITLY);
+ 
+   execvp (exec_file,
+-#ifdef __MINGW32__
++//#ifdef __MINGW32__
+           /* extra "const" in mingw formals, provokes warning from gcc */
+-          (const char * const *)
+-#endif
++//          (const char * const *)
++//#endif
+           exec_argv);
+   SCM_SYSERROR;
+ 
+@@ -1048,15 +1048,15 @@
+ 			    SCM_F_WIND_EXPLICITLY);
+ 
+   execve (exec_file,
+-#ifdef __MINGW32__
++//#ifdef __MINGW32__
+           /* extra "const" in mingw formals, provokes warning from gcc */
+-          (const char * const *)
+-#endif
++//          (const char * const *)
++//#endif
+           exec_argv,
+-#ifdef __MINGW32__
++//#ifdef __MINGW32__
+           /* extra "const" in mingw formals, provokes warning from gcc */
+-          (const char * const *)
+-#endif
++//          (const char * const *)
++//#endif
+           exec_env);
+   SCM_SYSERROR;
+ 
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/srfi-13.c src/guile-1.8.8/libguile/srfi-13.c
+--- src/guile-1.8.8.orig/libguile/srfi-13.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/srfi-13.c	2016-07-10 11:13:05.887765100 +0200
+@@ -45,6 +45,17 @@
+     scm_i_get_substring_spec (scm_i_string_length (str),            \
+ 			      start, &c_start, end, &c_end);        \
+   } while (0)
++	  
++#define MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD(pos_str, str,         \
++                                        pos_start, start, c_start,  \
++                                        pos_end, end, c_end)        \
++  do {                                                              \
++    SCM_VALIDATE_STRING (pos_str, str);                             \
++    scm_i_get_substring_spec (scm_i_string_length (str),            \
++			      start, &c_start, end, &c_end);        \
++  } while (0)
++				   
++  
+ 
+ /* Expecting "unsigned char *c_str" */
+ #define MY_VALIDATE_SUBSTRING_SPEC_UCOPY(pos_str, str, c_str,           \
+@@ -507,12 +518,13 @@
+ 	    "@var{str} which is copied.")
+ #define FUNC_NAME s_scm_srfi13_substring_copy
+ {
+-  const char *cstr;
++  //const char *cstr;
+   size_t cstart, cend;
+ 
+-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
++MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD (1, str, 
+ 				   2, start, cstart,
+ 				   3, end, cend);
++
+   return scm_c_substring_copy (str, cstart, cend);
+ }
+ #undef FUNC_NAME
+@@ -2396,10 +2408,10 @@
+ 	    "@end lisp")
+ #define FUNC_NAME s_scm_substring_upcase_x
+ {
+-  const char *cstr;
++  //const char *cstr;
+   size_t cstart, cend;
+ 
+-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
++  MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD (1, str, 
+ 				   2, start, cstart,
+ 				   3, end, cend);
+   return string_upcase_x (str, cstart, cend);
+@@ -2417,10 +2429,10 @@
+ 	    "Upcase every character in @code{str}.")
+ #define FUNC_NAME s_scm_substring_upcase
+ {
+-  const char *cstr;
++  //const char *cstr;
+   size_t cstart, cend;
+ 
+-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
++  MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD (1, str,
+ 				   2, start, cstart,
+ 				   3, end, cend);
+   return string_upcase_x (scm_string_copy (str), cstart, cend);
+@@ -2464,10 +2476,10 @@
+ 	    "@end lisp")
+ #define FUNC_NAME s_scm_substring_downcase_x
+ {
+-  const char *cstr;
++  //const char *cstr;
+   size_t cstart, cend;
+ 
+-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
++  MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD (1, str, 
+ 				   2, start, cstart,
+ 				   3, end, cend);
+   return string_downcase_x (str, cstart, cend);
+@@ -2485,10 +2497,10 @@
+ 	    "Downcase every character in @var{str}.")
+ #define FUNC_NAME s_scm_substring_downcase
+ {
+-  const char *cstr;
++  //const char *cstr;
+   size_t cstart, cend;
+ 
+-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
++  MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD (1, str,
+ 				   2, start, cstart,
+ 				   3, end, cend);
+   return string_downcase_x (scm_string_copy (str), cstart, cend);
+@@ -2541,10 +2553,10 @@
+ 	    "@var{str}.")
+ #define FUNC_NAME s_scm_string_titlecase_x
+ {
+-  const char *cstr;
++  //const char *cstr;
+   size_t cstart, cend;
+ 
+-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
++  MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD (1, str,
+ 				   2, start, cstart,
+ 				   3, end, cend);
+   return string_titlecase_x (str, cstart, cend);
+@@ -2557,10 +2569,10 @@
+ 	    "Titlecase every first character in a word in @var{str}.")
+ #define FUNC_NAME s_scm_string_titlecase
+ {
+-  const char *cstr;
++  //const char *cstr;
+   size_t cstart, cend;
+ 
+-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
++  MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD (1, str,
+ 				   2, start, cstart,
+ 				   3, end, cend);
+   return string_titlecase_x (scm_string_copy (str), cstart, cend);
+@@ -2625,12 +2637,12 @@
+ 	    "operate on.")
+ #define FUNC_NAME s_scm_string_reverse
+ {
+-  const char *cstr;
++  //const char *cstr;
+   char *ctarget;
+   size_t cstart, cend;
+   SCM result;
+ 
+-  MY_VALIDATE_SUBSTRING_SPEC_COPY (1, str, cstr,
++  MY_VALIDATE_SUBSTRING_SPEC_COPY_MOD (1, str,
+ 				   2, start, cstart,
+ 				   3, end, cend);
+   result = scm_string_copy (str);
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/srfi-4.c src/guile-1.8.8/libguile/srfi-4.c
+--- src/guile-1.8.8.orig/libguile/srfi-4.c	2010-12-13 18:25:01.000000000 +0100
++++ src/guile-1.8.8/libguile/srfi-4.c	2016-07-10 11:13:05.903365400 +0200
+@@ -396,10 +396,10 @@
+   scm_t_array_handle handle;
+   size_t len;
+   ssize_t i, inc;
+-  const void *elts;
++  //const void *elts;
+   SCM res = SCM_EOL;
+ 
+-  elts = uvec_elements (type, uvec, &handle, &len, &inc);
++  /*elts =*/ uvec_elements (type, uvec, &handle, &len, &inc);
+   for (i = len*inc; i > 0;)
+     {
+       i -= inc;
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/stacks.c src/guile-1.8.8/libguile/stacks.c
+--- src/guile-1.8.8.orig/libguile/stacks.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/stacks.c	2016-07-10 11:13:05.918965700 +0200
+@@ -552,10 +552,10 @@
+ 	    "Return the @var{index}'th frame from @var{stack}.")
+ #define FUNC_NAME s_scm_stack_ref
+ {
+-  unsigned long int c_index;
++  //unsigned long int c_index;
+ 
+   SCM_VALIDATE_STACK (1, stack);
+-  c_index = scm_to_unsigned_integer (index, 0, SCM_STACK_LENGTH(stack)-1);
++  /*c_index =*/ scm_to_unsigned_integer (index, 0, SCM_STACK_LENGTH(stack)-1);
+   return scm_cons (stack, index);
+ }
+ #undef FUNC_NAME
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/threads.c src/guile-1.8.8/libguile/threads.c
+--- src/guile-1.8.8.orig/libguile/threads.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/threads.c	2016-07-10 11:13:05.934566000 +0200
+@@ -826,7 +826,9 @@
+       errno = err;
+       scm_syserror (NULL);
+     }
+-  scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
++  //scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
++  //#define scm_i_pthread_cond_wait(c,m)        (abort(), 0)
++  abort();  
+   scm_i_pthread_mutex_unlock (&data.mutex);
+   
+   return data.thread;
+@@ -903,7 +905,9 @@
+       errno = err;
+       scm_syserror (NULL);
+     }
+-  scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
++  //scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
++  //#define scm_i_pthread_cond_wait(c,m)        (abort(), 0)
++  abort();
+   scm_i_pthread_mutex_unlock (&data.mutex);
+   
+   return data.thread;
+@@ -1455,9 +1459,9 @@
+   if (res > 0 && FD_ISSET (wakeup_fd, readfds))
+     {
+       char dummy;
+-      size_t count;
++      //size_t count;
+ 
+-      count = read (wakeup_fd, &dummy, 1);
++      /*count =*/ read (wakeup_fd, &dummy, 1);
+ 
+       FD_CLR (wakeup_fd, readfds);
+       res -= 1;
+@@ -1658,7 +1662,9 @@
+ scm_i_thread_sleep_for_gc ()
+ {
+   scm_i_thread *t = suspend ();
+-  scm_i_pthread_cond_wait (&wake_up_cond, &t->heap_mutex);
++  //scm_i_pthread_cond_wait (&wake_up_cond, &t->heap_mutex);
++  //#define scm_i_pthread_cond_wait(c,m)        (abort(), 0)
++  abort();
+   resume (t);
+ }
+ 
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/throw.c src/guile-1.8.8/libguile/throw.c
+--- src/guile-1.8.8.orig/libguile/throw.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/throw.c	2016-07-10 11:13:05.965766600 +0200
+@@ -752,7 +752,7 @@
+     {
+       struct pre_unwind_data *c =
+ 	(struct pre_unwind_data *) SCM_CELL_WORD_1 (jmpbuf);
+-      SCM handle, answer;
++      SCM handle;//, answer;
+ 
+       /* For old-style lazy-catch behaviour, we unwind the dynamic
+ 	 context before invoking the handler. */
+@@ -776,7 +776,7 @@
+ 				  c,
+ 				  SCM_F_WIND_EXPLICITLY);
+       scm_dynwind_unwind_handler (toggle_pre_unwind_running, c, 0);
+-      answer = (c->handler) (c->handler_data, key, args);
++      //answer = (c->handler) (c->handler_data, key, args);
+ 
+       /* There is deliberately no scm_dynwind_end call here.  This
+ 	 means that the unwind handler (toggle_pre_unwind_running)
+diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/unif.c src/guile-1.8.8/libguile/unif.c
+--- src/guile-1.8.8.orig/libguile/unif.c	2010-12-13 18:24:40.000000000 +0100
++++ src/guile-1.8.8/libguile/unif.c	2016-07-10 11:13:05.965766600 +0200
+@@ -2676,7 +2676,7 @@
+ scm_i_read_array (SCM port, int c)
+ {
+   ssize_t rank;
+-  int got_rank;
++  //int got_rank;
+   char tag[80];
+   int tag_len;
+ 
+@@ -2704,7 +2704,7 @@
+ 	  return SCM_BOOL_F;
+ 	}
+       rank = 1;
+-      got_rank = 1;
++      //got_rank = 1;
+       tag[0] = 'f';
+       tag_len = 1;
+       goto continue_reading_tag;
