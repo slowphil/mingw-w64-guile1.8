@@ -1,13 +1,13 @@
-# Maintainer: Alexey Pavlov <alexpux@gmail.com>
+# Maintainer: Philippe Joyez
 
 _realname=guile
 
 pkgbase=mingw-w64-${_realname}18
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}18"
 pkgver=1.8.8
-pkgrel=4
+pkgrel=1
 pkgdesc="a portable, embeddable Scheme implementation written in C. Legacy branch. (mingw-w64)"
-arch=('any')
+arch=('i686')
 url="https://www.gnu.org/software/guile/"
 license=("GPL")
 makedepends=("${MINGW_PACKAGE_PREFIX}-gcc" "${MINGW_PACKAGE_PREFIX}-pkg-config")
@@ -38,10 +38,10 @@ prepare() {
   patch -p2 -i ${srcdir}/cygwin-ports_guile_1.8.5-export-symbols.patch
   patch -p2 -i ${srcdir}/fix_warnings.patch
   patch -p1 -i ${srcdir}/gnucash-on-windows_guile-1.8.patch
-if  [ $CARCH = "x86_64" ]; then
-  patch -p2 -i ${srcdir}/fix_mingw_x86_64-4.patch
-  patch -p1 -E -i ${srcdir}/dirent2.patch
-fi
+#if  [ $CARCH = "x86_64" ]; then
+#  patch -p2 -i ${srcdir}/fix_mingw_x86_64-4.patch
+#  patch -p1 -E -i ${srcdir}/dirent2.patch
+#fi
   autoreconf -fi
   sed -i 's|"$ac_cv_sizeof_long" -ne "$ac_cv_sizeof_void_p"|"$ac_cv_sizeof_long" -gt "$ac_cv_sizeof_void_p"|g' configure
 }
