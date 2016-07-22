@@ -2,7 +2,7 @@
 
 _realname=guile
 
-pkgbase=mingw-w64-${_realname}18
+pkgbase=mingw-w64-${_realname}1.8
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}18"
 pkgver=1.8.8
 pkgrel=1
