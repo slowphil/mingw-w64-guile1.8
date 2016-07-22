@@ -13,19 +13,6 @@
  
  #ifndef HAVE_SIGACTION
    signal (signum, take_signal);
---- src/guile-1.8.8/libguile/gc.h       2010-12-13 18:24:40.000000000 +0100
-+++ src/guile-1.8.8/libguile/gc.h.mod   2016-07-20 20:31:46.246096900 +0200
-@@ -121,8 +121,8 @@
- #define SCM_GC_CARD_SIZE_MASK  (SCM_GC_SIZEOF_CARD-1)
- #define SCM_GC_CARD_ADDR_MASK  (~SCM_GC_CARD_SIZE_MASK)
-
--#define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long) (x) & SCM_GC_CARD_ADDR_MASK))
--#define SCM_GC_CELL_OFFSET(x)  (((long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
-+#define SCM_GC_CELL_CARD(x)    ((scm_t_cell *) ((long long) (x) & SCM_GC_CARD_ADDR_MASK))
-+#define SCM_GC_CELL_OFFSET(x)  (((long long) (x) & SCM_GC_CARD_SIZE_MASK) >> SCM_CELL_SIZE_SHIFT)
- #define SCM_GC_CELL_BVEC(x)    SCM_GC_CARD_BVEC (SCM_GC_CELL_CARD (x))
- #define SCM_GC_SET_CELL_BVEC(x, bvec)    SCM_GC_SET_CARD_BVEC (SCM_GC_CELL_CARD (x), bvec)
- #define SCM_GC_CELL_GET_BIT(x) SCM_C_BVEC_GET (SCM_GC_CELL_BVEC (x), SCM_GC_CELL_OFFSET (x))
 diff -ru -x '*.in*' -x '*.am' -x '*.m4' -x '*.sh' -x '*.cache' -x compile -x '*.guess' -x '*.sub' -x '*comp' -x '*sh' -x missing -x '*.tex' -x 'conf*' -x INSTALL -x gc.h -x pthread-threads.h src/guile-1.8.8.orig/libguile/async.c src/guile-1.8.8/libguile/async.c
 --- src/guile-1.8.8.orig/libguile/async.c	2010-12-13 18:24:39.000000000 +0100
 +++ src/guile-1.8.8/libguile/async.c	2016-07-10 11:13:05.840964200 +0200
