@@ -4,6 +4,7 @@ This repository provides legacy Guile 1.8 for the [MSys2/Mingw-w32/Mingw-w64](ht
 
 ##Why?
 -Presently [Guile 2.0 does not build at all for mingw64](https://github.com/Alexpux/MINGW-packages/issues/699)
+
 -Because of profound changes in Guile 2.0 several GNU project still require linking with Guile 1.8, notably [TeXmacs](http://www.texmacs.org/), [GNUCash](http://www.gnucash.org/) or [LilyPond](http://lilypond.org/).
 
 ##Caveat
