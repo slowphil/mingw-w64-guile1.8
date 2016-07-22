@@ -3,7 +3,7 @@
 _realname=guile
 
 pkgbase=mingw-w64-${_realname}1.8
-pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}18"
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}1.8"
 pkgver=1.8.8
 pkgrel=1
 pkgdesc="a portable, embeddable Scheme implementation written in C. Legacy branch. (mingw-w64)"
