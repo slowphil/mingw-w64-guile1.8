@@ -31,7 +31,11 @@ source=("https://ftp.gnu.org/pub/gnu/${_realname}/${_realname}-${pkgver}.tar.gz"
   dirent2.patch
   )
 sha256sums=('c3471fed2e72e5b04ad133bbaaf16369e8360283679bcf19800bc1b381024050'
- 'SKIP' 'SKIP' 'SKIP'  'SKIP' 'SKIP'  )
+            '20fcb414e08d37640de2efe20631c4f4d5763221d87ee5b259552e08a73d77b2'
+            'f10c0f0eae7ccd7d5834fd25b18abcfff57bedeafe4d275b987b848ca48200a4'
+            'a708e3454af35dd7389124959e18798fd733db396b3facb2d918facaab76fc2c'
+            '570ff3cc8eec0d631d71a2f94e93b7ba291869baa7a83335df609052f5593e61'
+            'd19b485f4dc104131b3fd4575ba645c9e4d244a2b37e1874d77d088efab34c5c')
 
 prepare() {
   cd ${srcdir}/${_realname}-${pkgver}
