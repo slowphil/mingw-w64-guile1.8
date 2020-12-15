@@ -55,6 +55,7 @@ build() {
   export "ap_cv_void_ptr_lt_long=4"
 # export CFLAGS="$CFLAGS -g -O1"
 #  export CXXFLAGS="$CXXFLAGS -g -O1"
+ export CFLAGS="$CFLAGS -Wno-stringop-truncation"
 
   cd "${srcdir}/build-${MINGW_CHOST}"
   "${srcdir}"/${_realname}-${pkgver}/configure \
