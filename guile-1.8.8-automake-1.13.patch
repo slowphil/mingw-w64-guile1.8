@@ -1,0 +1,19 @@
+--- guile-1.8.8/guile-readline/configure.in.orig	2013-01-12 17:17:19.001703082 -0500
++++ guile-1.8.8/guile-readline/configure.in	2013-01-12 17:17:46.227027281 -0500
+@@ -9,14 +9,14 @@
+ 
+ AC_CONFIG_AUX_DIR([.])
+ AC_CONFIG_SRCDIR(readline.c)
+-AM_CONFIG_HEADER([guile-readline-config.h])
++AC_CONFIG_HEADERS([guile-readline-config.h])
+ AM_INIT_AUTOMAKE([foreign no-define])
+ 
+ . $srcdir/../GUILE-VERSION
+ 
+ AC_PROG_INSTALL
+ AC_PROG_CC
+-AM_PROG_CC_STDC
++AC_PROG_CC
+ AC_LIBTOOL_WIN32_DLL
+ AC_PROG_LIBTOOL
+ 

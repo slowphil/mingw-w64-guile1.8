@@ -1,0 +1,11 @@
+--- ./configure.in~	2008-05-07 19:51:15.000000000 +0200
++++ ./configure.in	2008-12-21 21:12:06.000000000 +0100
+@@ -1414,7 +1414,7 @@
+ #######################################################################
+ 
+ dnl Tell guile-config what flags guile users should compile and link with.
+-GUILE_LIBS="$LDFLAGS $LIBS"
++GUILE_LIBS="$LIBS"
+ GUILE_CFLAGS="$CPPFLAGS $PTHREAD_CFLAGS"
+ AC_SUBST(GUILE_LIBS)
+ AC_SUBST(GUILE_CFLAGS)

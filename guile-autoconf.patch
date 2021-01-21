@@ -1,0 +1,12 @@
+diff --git a/configure.in b/configure.in
+index e364edf..942a760 100644
+--- a/configure.in
++++ b/configure.in
+@@ -881,6 +881,7 @@ dnl i18n tests
+ #fi
+ #AC_CHECK_FUNCS([bindtextdomain textdomain])
+ AM_GNU_GETTEXT([external], [need-ngettext])
++AM_GNU_GETTEXT_REQUIRE_VERSION([0.21])
+ 
+ ### Some systems don't declare some functions.  On such systems, we
+ ### need to at least provide our own K&R-style declarations.

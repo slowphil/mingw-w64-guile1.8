@@ -1,0 +1,165 @@
+--- guile-1.8.3/srfi/srfi-60.c	2007-05-09 13:22:03.000000000 -0700
++++ guile-1.8.3/srfi/srfi-60.c.new	2007-11-06 20:55:38.000000000 -0800
+@@ -59,7 +59,7 @@ SCM_DEFINE (scm_srfi60_log2_binary_facto
+ 
+ 
+ SCM_DEFINE (scm_srfi60_copy_bit, "copy-bit", 3, 0, 0,
+-            (SCM index, SCM n, SCM bit),
++            (SCM index, SCM n, SCM newbit),
+ 	    "Return @var{n} with the bit at @var{index} set according to\n"
+ 	    "@var{newbit}.  @var{newbit} should be @code{#t} to set the bit\n"
+ 	    "to 1, or @code{#f} to set it to 0.  Bits other than at\n"
+@@ -75,7 +75,7 @@ SCM_DEFINE (scm_srfi60_copy_bit, "copy-b
+   int bb;
+ 
+   ii = scm_to_ulong (index);
+-  bb = scm_to_bool (bit);
++  bb = scm_to_bool (newbit);
+ 
+   if (SCM_I_INUMP (n))
+     {
+@@ -86,7 +86,7 @@ SCM_DEFINE (scm_srfi60_copy_bit, "copy-b
+       if (ii < SCM_LONG_BIT-1)
+         {
+           nn &= ~(1L << ii);  /* zap bit at index */
+-          nn |= ((long) bb << ii);   /* insert desired bit */
++          nn |= (((unsigned long) bb) << ii);   /* insert desired bit */
+           return scm_from_long (nn);
+         }
+       else
+--- guile-1.8.3/test-suite/standalone/test-conversion.c	2007-10-10 13:17:52.000000000 -0700
++++ guile-1.8.3/test-suite/standalone/test-conversion.c.new	2007-11-06 21:05:07.000000000 -0800
+@@ -45,7 +45,7 @@ test_1 (const char *str, scm_t_intmax mi
+     {
+       fprintf (stderr, "fail: scm_is_signed_integer (%s, "
+ 	       "%" PRIiMAX ", %" PRIiMAX ") == %d\n",
+-	       str, min, max, result);
++	       str, (long long) min, (long long) max, result);
+       exit (1);
+     }
+ }
+@@ -131,7 +131,9 @@ test_2 (const char *str, scm_t_uintmax m
+     {
+       fprintf (stderr, "fail: scm_is_unsigned_integer (%s, "
+ 	       "%" PRIuMAX ", %" PRIuMAX ") == %d\n",
+-	       str, min, max, result);
++               str,
++               (unsigned long long) min, (unsigned long long) max,
++               result);
+       exit (1);
+     }
+ }
+@@ -252,7 +254,7 @@ test_3 (const char *str, scm_t_intmax mi
+ 	  fprintf (stderr,
+ 		   "fail: scm_to_signed_int (%s, "
+ 		   "%" PRIiMAX ", %" PRIiMAX ") -> out of range\n",
+-		   str, min, max);
++                   str, (long long) min, (long long) max);
+ 	  exit (1);
+ 	}
+     }
+@@ -265,7 +267,7 @@ test_3 (const char *str, scm_t_intmax mi
+ 	  fprintf (stderr,
+ 		   "fail: scm_to_signed_int (%s, "
+ 		   "%" PRIiMAX", %" PRIiMAX ") -> wrong type\n",
+-		   str, min, max);
++                   str, (long long) min, (long long) max);
+ 	  exit (1);
+ 	}
+     }
+@@ -279,7 +281,7 @@ test_3 (const char *str, scm_t_intmax mi
+ 	  fprintf (stderr,
+ 		   "fail: scm_to_signed_int (%s, "
+ 		   "%" PRIiMAX ", %" PRIiMAX ") = %" PRIiMAX "\n",
+-		   str, min, max, result);
++                   str, (long long) min, (long long) max, (long long) result);
+ 	  exit (1);
+ 	}
+     }
+@@ -387,7 +389,7 @@ test_4 (const char *str, scm_t_uintmax m
+ 	  fprintf (stderr,
+ 		   "fail: scm_to_unsigned_int (%s, "
+ 		   "%" PRIuMAX ", %" PRIuMAX ") -> out of range\n",
+-		   str, min, max);
++                   str, (unsigned long long) min, (unsigned long long) max);
+ 	  exit (1);
+ 	}
+     }
+@@ -400,7 +402,7 @@ test_4 (const char *str, scm_t_uintmax m
+ 	  fprintf (stderr,
+ 		   "fail: scm_to_unsigned_int (%s, "
+ 		   "%" PRIuMAX ", %" PRIuMAX ") -> wrong type\n",
+-		   str, min, max);
++                   str, (unsigned long long) min, (unsigned long long) max);
+ 	  exit (1);
+ 	}
+     }
+@@ -414,7 +416,9 @@ test_4 (const char *str, scm_t_uintmax m
+ 	  fprintf (stderr,
+ 		   "fail: scm_to_unsigned_int (%s, "
+ 		   "%" PRIuMAX ", %" PRIuMAX ") == %" PRIuMAX "\n",
+-		   str, min, max, result);
++                   str,
++                   (unsigned long long) min, (unsigned long long) max,
++                   (unsigned long long) result);
+ 	  exit (1);
+ 	}
+     }
+@@ -470,7 +474,7 @@ test_5 (scm_t_intmax val, const char *re
+   if (scm_is_false (scm_equal_p (scm_from_signed_integer (val), res)))
+     {
+       fprintf (stderr, "fail: scm_from_signed_integer (%" PRIiMAX ") == %s\n",
+-	       val, result);
++               (long long) val, result);
+       exit (1);
+     }
+ }
+@@ -503,7 +507,7 @@ test_6 (scm_t_uintmax val, const char *r
+     {
+       fprintf (stderr, "fail: scm_from_unsigned_integer (%"
+ 	       PRIuMAX ") == %s\n",
+-	       val, result);
++               (unsigned long long) val, result);
+       exit (1);
+     }
+ }
+@@ -531,7 +535,8 @@ test_7s (SCM n, scm_t_intmax c_n, const 
+ 
+   if (scm_is_false (scm_equal_p (n, r)))
+     {
+-      fprintf (stderr, "fail: %s (%" PRIiMAX ") == %s\n", func, c_n, result);
++      fprintf (stderr, "fail: %s (%" PRIiMAX ") == %s\n",
++              func, (long long) c_n, result);
+       exit (1);
+     }
+ }
+@@ -545,7 +550,8 @@ test_7u (SCM n, scm_t_uintmax c_n, const
+ 
+   if (scm_is_false (scm_equal_p (n, r)))
+     {
+-      fprintf (stderr, "fail: %s (%" PRIuMAX ") == %s\n", func, c_n, result);
++      fprintf (stderr, "fail: %s (%" PRIuMAX ") == %s\n",
++              func, (unsigned long long) c_n, result);
+       exit (1);
+     }
+ }
+@@ -604,7 +610,8 @@ test_8s (const char *str, scm_t_intmax (
+ 	  || data.result != result)
+ 	{
+ 	  fprintf (stderr,
+-		   "fail: %s (%s) = %" PRIiMAX "\n", func_name, str, result);
++		   "fail: %s (%s) = %" PRIiMAX "\n",
++                   func_name, str, (long long) result);
+ 	  exit (1);
+ 	}
+     }
+@@ -662,7 +669,8 @@ test_8u (const char *str, scm_t_uintmax 
+ 	  || data.result != result)
+ 	{
+ 	  fprintf (stderr,
+-		   "fail: %s (%s) = %" PRIiMAX "\n", func_name, str, result);
++		   "fail: %s (%s) = %" PRIiMAX "\n",
++                   func_name, str, (unsigned long long) result);
+ 	  exit (1);
+ 	}
+     }
